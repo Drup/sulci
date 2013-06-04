@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: dbce27df4f075cc086074901a643f371) *)
+(* DO NOT EDIT (digest: 22d88261349d02baa1f1cbc7ccc5883f) *)
 This is the INSTALL file for the sulci distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -11,19 +11,13 @@ Dependencies
 In order to compile this package, you will need:
 * ocaml (>= 3.12)
 * findlib
-* erm_brainfuck for executable sulci
 * erm_logger for executable sulci
-* erm_dehtml for executable sulci
 * erm_scheduler for executable sulci
 * erm_strftime for executable sulci
 * erm_xml for executable sulci
 * erm_xmpp for executable sulci
-* text for executable sulci
-* sqlite3 for executable sulci
 * ulex for executable sulci
 * pcre for executable sulci
-* netclient for executable sulci
-* json-static for executable sulci
 * erm_treap for executable sulci
 
 Installing

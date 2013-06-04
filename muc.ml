@@ -11,9 +11,6 @@ open XMPPClient
 module MUC = XEP_muc.Make(XMPPClient)
 open MUC
 
-open Sqlite3
-module Sql = Muc_sql.Make(Sqlgg_sqlite3)
-
 type occupant = {
   (* nick : string; *)
   mutable jid : JID.t option;
@@ -58,7 +55,6 @@ type muc_event =
 type muc_context = {
   max_public_message_length : int;
   default_mynick : string option;
-  db : Sqlite3.db;
   mutable groupchats : room_env Groupchat.t;
   mutable conversation_procs :
     (muc_context -> xmpp -> env -> message_type option ->
@@ -673,37 +669,24 @@ let plugin opts =
   let max_public_message_length = get_int
     ~exn:(Plugin.Error "'max_public_message_length' must be an integer")
     opts "value" "max_public_message_length" 400 in
-  let file = get_value opts "db" "file" "sulci_muc.db" in
   let default_mynick =
     try Some (List.assoc "value" (List.assoc "nick" opts))
     with Not_found -> None in
     add_for_token
       (fun _opts user_data ->
-         let db = db_open file in
          let ctx = {
            max_public_message_length = max_public_message_length;
            default_mynick = default_mynick;
-           db = db;
            groupchats = Groupchat.empty;
            conversation_procs = [];
            muc_event_handlers = [];
          } in
-           ignore (Sql.create_muc db);
            Hooks.add_message_hook user_data 10 "muc" (process_message ctx);
            Hooks.add_message_hook user_data 20 "muc_context"
              (do_hook_with_muc_context ctx);
            Hooks.add_presence_hook user_data 10 "muc" (process_presence ctx);
-           List.iter (fun proc -> proc ctx user_data) (List.rev !ctx_hooks);
-           register_on_connect user_data
-             (fun xmpp ->
-               ignore (Sql.select_rooms db
-                         (fun room nick lang chatlog ->
-                           let lang = if lang = "" then None else Some lang in
-                             enter_room ctx xmpp ~maxstanzas:0 ?lang ~nick
-                               (JID.of_string room)
-                          )
-                       )
-             )
+           List.iter (fun proc -> proc ctx user_data) (List.rev !ctx_hooks) 
+           
       )
 
 let () =

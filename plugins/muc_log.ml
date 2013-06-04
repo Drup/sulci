@@ -3,7 +3,6 @@
  *)
 
 open Unix
-open Pcre
 open JID
 open Hooks
 open Muc
@@ -223,20 +222,20 @@ let process_message ctx muc_context xmpp env stanza hooks =
 
 let plugin opts =
   let basedir = get_value opts "dir" "chatlogs" "chatlogs" in
-    if not (Sys.file_exists basedir) then
-      raise (Plugin.Error (Printf.sprintf "%s does not exist" basedir));
-    Muc.add_for_muc_context
-      (fun muc_context xmpp ->
-         let ctx = {
-           basedir = basedir;
-           logmap = LogMap.empty
-         } in
-         let _ = Scheduler.add_task timerQ (rotate_logs ctx)
+  if not (Sys.file_exists basedir) then
+    raise (Plugin.Error (Printf.sprintf "%s does not exist" basedir));
+  Muc.add_for_muc_context
+    (fun muc_context xmpp ->
+       let ctx = {
+         basedir = basedir;
+         logmap = LogMap.empty
+       } in
+       let _ = Scheduler.add_task timerQ (rotate_logs ctx)
            (get_next_time 0 0 ()) (get_next_time 0 0); in
-           Muc.add_muc_event_handler muc_context (muc_log_event ctx);
-           Hooks.add_message_hook xmpp 11 "muc_log"
-             (process_message ctx muc_context)
-      )
+       Muc.add_muc_event_handler muc_context (muc_log_event ctx);
+       Hooks.add_message_hook xmpp 11 "muc_log"
+         (process_message ctx muc_context)
+    )
 
 let () =
   Plugin.add_plugin "muc_log" plugin
